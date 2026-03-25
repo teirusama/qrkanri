@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="format-detection" content="telephone=no, email=no">
+    <title>VIVAWORK-社員ID管理</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+
+    <style>
+
+        body {
+            margin: 0;
+            font-family: 'DotGothic16', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        input, button, select {
+            font-family: 'DotGothic16', sans-serif;
+        }
+
+        input, select {
+            border: 2px solid #333;
+            border-radius: 8px;
+            background: #fff;
+        }
+
+        button {
+            border: 2px solid #333;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: auto;
+            padding: 0 20px 20px 20px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+        }
+
+        .header button {
+            appearance: none;
+            background: none;
+            border: none;
+            box-shadow: none;
+            font-size: 18px;
+            padding: 0;
+            color: black;
+        }
+
+        .search-box {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-box select {
+            padding: 8px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 8px;
+        }
+
+        .search-box button {
+            background: #337fc6;
+            color: white;
+            padding: 8px 12px;
+        }
+
+        .employee-list {
+            margin-top: 20px;
+        }
+
+        .employee-item {
+            background: white;
+            padding: 14px;
+            margin-bottom: 10px;
+            border: 3px solid #333;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 4px 4px 0 #d9d9d9;
+            transition: all .25s;
+        }
+
+        .employee-item.expanded {
+            padding: 20px;
+        }
+
+        .employee-detail {
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .employee-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .employee-label {
+            width: 60px;
+        }
+
+        .employee-row input {
+            flex: 1;
+            padding: 6px;
+        }
+
+        .employee-actions {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .employee-actions button {
+            padding: 6px 12px;
+        }
+
+        .edit-btn {
+            background: #337fc6;
+            color: white;
+            border: none;
+        }
+
+        .delete-btn {
+            background: #fc6b11;
+            color: white;
+            border: none;
+        }
+
+        .reset-btn {
+            background: #6c5ce7;
+            color: white;
+            border: none;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 14px 24px;
+            border-radius: 8px;
+            opacity: 0;
+            transition: opacity .3s;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,.3);
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border: 3px solid #333;
+            border-radius: 10px;
+            width: 260px;
+            text-align: center;
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            box-shadow: 2px 2px 0 #e0e0e0;
+            margin-bottom: 10px;
+        }
+
+        .modal-actions {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .modal-actions button {
+            background: black;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+        }
+
+        .shake {
+            animation: shake .35s linear;
+        }
+
+        @keyframes shake {
+            0% {transform: translateX(0)}
+            20% {transform: translateX(-10px)}
+            40% {transform: translateX(10px)}
+            60% {transform: translateX(-10px)}
+            80% {transform: translateX(10px)}
+            100% {transform: translateX(0)}
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <button onclick="goHome()">«</button>
+        <h3>社員ID管理</h3>
+    </div>
+
+    <div class="search-box">
+        <select id="searchType">
+            <option value="name">名前</option>
+            <option value="loginid">ID</option>
+            <option value="phone">電話</option>
+            <option value="email">メール</option>
+        </select>
+
+        <input id="keyword" placeholder="検索">
+        <button onclick="searchEmployee()">OK</button>
+    </div>
+
+    <div id="employeeList" class="employee-list"></div>
+
+</div>
+
+<div id="toast" class="toast"></div>
+
+<div id="passwordModal" class="modal">
+    <div class="modal-content" id="modalContent">
+
+        <div id="passwordStep">
+            <p id="passwordMessage">管理者パスワードを入力してください。</p>
+            <input type="password" id="adminPassword">
+
+            <div class="modal-actions">
+                <button onclick="confirmPassword()">確認</button>
+                <button onclick="closeModal()">キャンセル</button>
+            </div>
+        </div>
+
+        <div id="confirmStep" style="display:none">
+            <p>本当に削除しますか？</p>
+
+            <div class="modal-actions">
+                <button onclick="executeDelete()">はい</button>
+                <button onclick="closeModal()">いいえ</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div id="resetModal" class="modal">
+    <div class="modal-content">
+        <p>新しいパスワード</p>
+        <input type="password" id="newPassword">
+
+        <p>パスワード確認</p>
+        <input type="password" id="confirmPasswordInput">
+
+        <div class="modal-actions">
+            <button onclick="executeReset()">確認</button>
+            <button onclick="closeResetModal()">キャンセル</button>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    let employees = [];
+    let deleteTargetId = null;
+    let resetTargetId = null;
+
+    function goHome() {
+        window.location = "/home";
+    }
+
+    async function loadEmployees() {
+        const res = await fetch("/employees");
+        employees = await res.json();
+        renderEmployees(employees);
+    }
+
+    function renderEmployees(data) {
+        const list = document.getElementById("employeeList");
+        list.innerHTML = "";
+
+        data.forEach(emp => {
+            const card = document.createElement("div");
+            card.className = "employee-item";
+            card.dataset.id = emp.id;
+
+            card.innerHTML = `
+                <span>${emp.name}</span>
+                <div class="employee-detail" style="display:none"></div>
+            `;
+
+            card.onclick = (e) => toggleEmployee(card, e);
+            list.appendChild(card);
+        });
+    }
+
+    function toggleEmployee(card, event) {
+
+        if (event && event.target.closest("input,button")) {
+            return;
+        }
+
+        const detail = card.querySelector(".employee-detail");
+
+        if (detail.style.display === "block") {
+            detail.style.display = "none";
+            card.classList.remove("expanded");
+            return;
+        }
+
+        const emp = employees.find(e => e.id == card.dataset.id);
+        const isAdmin = emp.role === "ADMIN";
+
+        detail.innerHTML = `
+
+            <div class="employee-row">
+                <span class="employee-label">ID</span>
+                <span>${emp.loginid}</span>
+            </div>
+
+            <div class="employee-row">
+                <span class="employee-label">職責</span>
+                <span>${emp.duty ?? "-"}</span>
+            </div>
+
+            <div class="employee-row">
+                <span class="employee-label">電話</span>
+                <span>${emp.phone ?? "-"}</span>
+            </div>
+
+            <div class="employee-row">
+                <span class="employee-label">メール</span>
+                <span>${emp.email ?? "-"}</span>
+            </div>
+
+            <div class="employee-actions">
+
+                <button class="edit-btn"
+                        onclick="event.stopPropagation(); editEmployee(${emp.id},this)">
+                    修正
+                </button>
+
+                <button class="reset-btn"
+                        onclick="event.stopPropagation(); openResetModal(${emp.id})">
+                    PW再設定
+                </button>
+
+                ${!isAdmin ? `
+                <button class="delete-btn"
+                        onclick="event.stopPropagation(); requestDelete(${emp.id})">
+                    削除
+                </button>
+                ` : ""}
+
+            </div>
+        `;
+
+        detail.style.display = "block";
+        card.classList.add("expanded");
+    }
+
+    function openResetModal(id) {
+        resetTargetId = id;
+        document.getElementById("newPassword").value = "";
+        document.getElementById("confirmPasswordInput").value = "";
+        document.getElementById("resetModal").style.display = "flex";
+    }
+
+    function closeResetModal() {
+        document.getElementById("resetModal").style.display = "none";
+        resetTargetId = null;
+    }
+
+    async function executeReset() {
+
+        const pw = document.getElementById("newPassword").value;
+        const confirm = document.getElementById("confirmPasswordInput").value;
+
+        if (!pw || pw !== confirm) {
+            alert("パスワードが一致しません。");
+            return;
+        }
+
+        await fetch("/admin/reset-password", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                employeeId: resetTargetId,
+                newPassword: pw
+            })
+        });
+
+        closeResetModal();
+        showToast("パスワードが変更されました。");
+    }
+
+    function editEmployee(id, btn) {
+        const card = btn.closest(".employee-item");
+        const detail = card.querySelector(".employee-detail");
+        const emp = employees.find(e => e.id == id);
+
+        detail.innerHTML = `
+
+            <div class="employee-row">
+                <span class="employee-label">ID</span>
+                <input value="${emp.loginid}" disabled style="background:#eee">
+            </div>
+
+            <div class="employee-row">
+                <span class="employee-label">職責</span>
+                <input id="editDuty" value="${emp.duty ?? ""}">
+            </div>
+
+            <div class="employee-row">
+                <span class="employee-label">電話</span>
+                <input id="editPhone" value="${emp.phone ?? ""}">
+            </div>
+
+            <div class="employee-row">
+                <span class="employee-label">メール</span>
+                <input id="editEmail" value="${emp.email ?? ""}">
+            </div>
+
+            <div class="employee-actions">
+                <button class="edit-btn" onclick="saveEmployee(${id})">保存</button>
+                <button class="delete-btn" onclick="loadEmployees()">キャンセル</button>
+            </div>
+        `;
+    }
+
+    async function saveEmployee(id) {
+
+        const duty = document.getElementById("editDuty").value;
+        const phone = document.getElementById("editPhone").value;
+        const email = document.getElementById("editEmail").value;
+
+        await fetch("/employees/" + id, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ duty, phone, email })
+        });
+
+        showToast("修正されました。");
+        loadEmployees();
+    }
+
+    function searchEmployee() {
+
+        const type = document.getElementById("searchType").value;
+        const keyword = document.getElementById("keyword").value.toLowerCase();
+
+        const filtered = employees.filter(e => {
+            const value = (e[type] ?? "").toLowerCase();
+            return value.includes(keyword);
+        });
+
+        renderEmployees(filtered);
+    }
+
+    function requestDelete(id) {
+
+        deleteTargetId = id;
+
+        document.getElementById("adminPassword").value = "";
+        document.getElementById("passwordMessage").innerText = "管理者パスワードを入力してください。";
+
+        document.getElementById("passwordStep").style.display = "block";
+        document.getElementById("confirmStep").style.display = "none";
+
+        document.getElementById("passwordModal").style.display = "flex";
+    }
+
+    function closeModal() {
+        document.getElementById("passwordModal").style.display = "none";
+        deleteTargetId = null;
+    }
+
+    async function confirmPassword() {
+
+        const password = document.getElementById("adminPassword").value;
+
+        const res = await fetch("/admin/verify-password", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password })
+        });
+
+        const result = await res.json();
+
+        if (!result.valid) {
+
+            const modal = document.getElementById("modalContent");
+            const message = document.getElementById("passwordMessage");
+
+            message.innerText = "パスワードが違います。";
+
+            modal.classList.add("shake");
+
+            setTimeout(() => {
+                modal.classList.remove("shake");
+            }, 400);
+
+            return;
+        }
+
+        document.getElementById("passwordStep").style.display = "none";
+        document.getElementById("confirmStep").style.display = "block";
+    }
+
+    async function executeDelete() {
+
+        await fetch("/employees/" + deleteTargetId, {
+            method: "DELETE"
+        });
+
+        closeModal();
+
+        showToast("削除されました。");
+
+        setTimeout(loadEmployees, 800);
+    }
+
+    function showToast(msg) {
+
+        const toast = document.getElementById("toast");
+
+        toast.innerText = msg;
+        toast.classList.add("show");
+
+        setTimeout(() => {
+            toast.classList.remove("show");
+        }, 3000);
+    }
+
+    loadEmployees();
+
+</script>
+
+</body>
+</html>

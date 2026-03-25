@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>VIVAWORK</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+
+    <style>
+
+        body{
+            margin:0;
+            font-family:'DotGothic16',sans-serif;
+            background:#f5f5f5;
+        }
+
+        .container{
+            padding:20px;
+            max-width:500px;
+            margin:auto;
+        }
+
+        .header{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+
+        }
+
+        .month-nav{
+            display:flex;
+            gap:10px;
+            align-items:center;
+
+        }
+
+        button{
+            appearance:none;
+            background:transparent;
+            border:none;
+            font-size:18px;
+            cursor:pointer;
+            font-family:'DotGothic16',sans-serif;
+            color:black;
+        }
+
+        .calendar{
+            margin-top:20px;
+            display:grid;
+            grid-template-columns:repeat(7,1fr);
+            gap:8px;
+        }
+
+        .day{
+            position:relative;
+            aspect-ratio:1/1;
+            background:white;
+            border-radius:12px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-weight:500;
+            box-shadow:0 2px 6px rgba(0,0,0,0.05);
+        }
+        .day.selected{
+            border:2px solid black;
+        }
+
+        .today{
+            background:#e5e5e5;
+        }
+
+        .day-number{
+            font-size:16px;
+        }
+
+        .count-badge{
+            position:absolute;
+            top:6px;
+            right:6px;
+            display:flex;
+            align-items:center;
+            gap:3px;
+            font-size:11px;
+            line-height:1;
+        }
+
+        .count-dot{
+            width:6px;
+            height:6px;
+            border-radius:50%;
+        }
+
+        .completed-badge{
+            color:#337fc6;
+        }
+
+        .completed-badge .count-dot{
+            background:#337fc6;
+        }
+
+        .scheduled-badge{
+            color:#ff8533;
+        }
+
+        .scheduled-badge .count-dot{
+            background:#ff8533;
+        }
+
+        .week-header{
+            display:grid;
+            grid-template-columns:repeat(7,1fr);
+            margin-top:15px;
+            font-size:12px;
+            text-align:center;
+            color:#999;
+        }
+
+        .shift-panel{
+            margin-top:20px;
+            background:white;
+            border-radius:12px;
+            padding:15px;
+            border:3px solid #333;
+            border-radius:8px;
+            box-shadow:5px 5px 0 #9e9e9e;
+        }
+
+        .shift-header{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            margin-bottom:10px;
+        }
+
+        .create-btn{
+            font-size:14px;
+            background:black;
+            color:white;
+            padding:6px 10px;
+            border-radius:6px;
+        }
+
+        .shift-list{
+            max-height:200px;
+            overflow-y:auto;
+            display:flex;
+            flex-direction:column;
+            gap:8px;
+        }
+
+        .shift-item{
+            background:#f5f5f5;
+            border:2px solid #333;
+            border-radius:8px;
+
+            padding:10px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+        }
+
+        .create-form{
+            margin-top:12px;
+            display:none;
+            flex-direction:column;
+            gap:10px;
+        }
+
+        .create-row{
+            display:flex;
+            justify-content:center;
+            gap:8px;
+        }
+
+        .create-row select{
+            flex:1;
+            min-width:0;
+            padding:8px;
+            border-radius:6px;
+            border:1px solid #ccc;
+            text-align:center;
+            font-family:'DotGothic16',sans-serif;
+            background:white;
+        }
+
+        .create-actions{
+            display:flex;
+            justify-content:flex-end;
+            gap:8px;
+        }
+
+        .create-actions button{
+            font-size:14px;
+            padding:6px 10px;
+            border-radius:6px;
+            color:white;
+        }
+
+        .save-btn{
+            font-size:14px;
+            padding:6px 10px;
+            background:black;
+        }
+
+        .cancel-btn{
+            font-size:12px;
+            padding:6px 10px;
+            background:black;
+        }
+
+        .delete-btn{
+            font-size:14px;
+            background:#fc6b11;
+            color:white;
+            padding:6px 10px;
+            border-radius:6px;
+            display:inline-block;
+            white-space:nowrap;
+            line-height:1;
+            flex-shrink:0;
+        }
+
+        .toast{
+            position:fixed;
+            bottom:40px;
+            left:50%;
+            transform:translateX(-50%);
+            background:#333;
+            color:white;
+            padding:14px 24px;
+            border-radius:8px;
+            opacity:0;
+            transition:opacity .3s;
+            z-index:9999;
+            pointer-events:none;
+        }
+
+        .toast.show{
+            opacity:1;
+        }
+        .modal{
+        position:fixed;
+        top:0;
+        left:0;
+        width:100%;
+        height:100%;
+        background:rgba(0,0,0,.3);
+        display:none;
+        justify-content:center;
+        align-items:center;
+        }
+
+        .modal-content{
+        background:white;
+        padding:20px;
+        border:3px solid #333;
+        border-radius:10px;
+        width:260px;
+        text-align:center;
+        }
+
+        .modal-actions{
+        margin-top:15px;
+        display:flex;
+        justify-content:center;
+        gap:10px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+
+        <div style="display:flex;align-items:center;gap:5px;">
+            <button onclick="goHome()">«</button>
+            <h3 style="margin:0;">シフト管理</h3>
+        </div>
+
+        <div class="month-nav">
+            <button onclick="changeMonth(-1)">‹</button>
+            <span id="monthLabel"></span>
+            <button onclick="changeMonth(1)">›</button>
+        </div>
+
+    </div>
+
+    <div class="week-header">
+        <div>日</div><div>月</div><div>火</div><div>水</div>
+        <div>木</div><div>金</div><div>土</div>
+    </div>
+
+    <div id="calendar" class="calendar"></div>
+
+    <div id="shiftPanel" class="shift-panel" style="display:none">
+
+        <div class="shift-header">
+            <span id="selectedDate"></span>
+            <button id="createBtn" class="create-btn" onclick="showCreateForm()">シフト作成</button>
+        </div>
+
+        <div id="shiftList" class="shift-list"></div>
+
+        <div id="createShiftForm" class="create-form">
+
+            <div class="create-row">
+                <select id="employeeSelect">
+                    <option value="">社員選択</option>
+                </select>
+
+                <select id="startTime">
+                    <option value="">出勤時間</option>
+                </select>
+
+                <select id="endTime">
+                    <option value="">退勤時間</option>
+                </select>
+            </div>
+
+            <div class="create-actions">
+                <button type="button" class="save-btn" onclick="submitShift()">登録</button>
+                <button type="button" class="cancel-btn" onclick="hideCreateForm()">キャンセル</button>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div id="toast" class="toast"></div>
+<div id="deleteModal" class="modal">
+
+    <div class="modal-content">
+
+        <p>本当に削除しますか？</p>
+
+        <div class="modal-actions">
+            <button onclick="executeDelete()" style="color:#fc6b11">はい</button>
+            <button onclick="closeDeleteModal()" style="color:#337fc6">いいえ</button>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+    const base = new Date()
+    let current = new Date()
+    let selectedDate = null
+    let deleteTargetShiftId = null
+
+    function goHome(){
+        window.location="/home"
+    }
+
+    function isAllowedMonth(date){
+        const diff =
+            (date.getFullYear()-base.getFullYear())*12 +
+            (date.getMonth()-base.getMonth())
+
+        return diff>=-1 && diff<=1
+    }
+
+    function showToast(msg){
+        const toast=document.getElementById("toast")
+        toast.innerText=msg
+        toast.classList.add("show")
+
+        setTimeout(()=>{
+            toast.classList.remove("show")
+        },3000)
+    }
+
+    function loadCalendar(){
+
+        const year=current.getFullYear()
+        const month=current.getMonth()+1
+
+        document.getElementById("monthLabel").innerText =
+            year+"年 "+month+"月"
+
+        fetch(`/admin/shifts/manage-calendar?year=${year}&month=${month}`)
+            .then(res=>res.json())
+            .then(data=>{
+
+                const calendar=document.getElementById("calendar")
+                calendar.innerHTML=""
+
+                const firstDay=new Date(year, month-1, 1).getDay()
+
+                for(let i=0;i<firstDay;i++){
+                    calendar.appendChild(document.createElement("div"))
+                }
+
+                const today=new Date()
+
+                data.forEach(day=>{
+
+                    const div=document.createElement("div")
+                    div.classList.add("day")
+
+                    const dateObj=new Date(day.date)
+
+                    const dayNumber=document.createElement("div")
+                    dayNumber.classList.add("day-number")
+                    dayNumber.innerText=dateObj.getDate()
+                    div.appendChild(dayNumber)
+
+                    if(
+                        today.getFullYear()===dateObj.getFullYear() &&
+                        today.getMonth()===dateObj.getMonth() &&
+                        today.getDate()===dateObj.getDate()
+                    ){
+                        div.classList.add("today")
+                    }
+
+                    if(day.count > 0){
+
+                        const badge=document.createElement("div")
+                        badge.classList.add("count-badge")
+
+                        const status = String(day.status).toUpperCase()
+
+                        if(status==="COMPLETED"){
+                            badge.classList.add("completed-badge")
+                        }else if(status==="SCHEDULED"){
+                            badge.classList.add("scheduled-badge")
+                        }
+
+                        const countText=document.createElement("span")
+                        countText.innerText=day.count
+
+                        badge.appendChild(countText)
+                        div.appendChild(badge)
+                    }
+
+                    div.onclick=()=>{
+
+                        document.querySelectorAll(".day").forEach(d=>d.classList.remove("selected"))
+
+                        div.classList.add("selected")
+
+                        openShiftPanel(day.date)
+                    }
+
+                    calendar.appendChild(div)
+
+                })
+
+            })
+    }
+
+    function changeMonth(diff){
+
+        const temp=new Date(current)
+        temp.setMonth(temp.getMonth()+diff)
+
+        if(!isAllowedMonth(temp)) return
+
+        current=temp
+        loadCalendar()
+
+    }
+
+    function openShiftPanel(date){
+
+        selectedDate=date
+
+        const d = new Date(date)
+        const days = ["日","月","火","水","木","金","土"]
+        const week = days[d.getDay()]
+
+        document.getElementById("selectedDate").innerText =
+            `${date} (${week})`
+
+        document.getElementById("shiftPanel").style.display="block"
+
+        const createBtn=document.getElementById("createBtn")
+
+        const today=new Date()
+        today.setHours(0,0,0,0)
+
+        const target=new Date(date)
+        target.setHours(0,0,0,0)
+
+        if(target > today){
+            createBtn.style.display="inline-block"
+        }else{
+            createBtn.style.display="none"
+            hideCreateForm()
+        }
+
+        resetCreateForm()
+        loadShiftList(date)
+
+    }
+
+    function toMinutes(timeStr){
+        if(!timeStr) return null;
+        const [h,m] = timeStr.split(":").map(Number);
+        return h*60 + m;
+    }
+
+    function getStatusText(shift){
+
+        if(!shift.checkIn || !shift.checkOut) return "";
+
+        const start = toMinutes(shift.startTime);
+        const end = toMinutes(shift.endTime);
+        const checkIn = toMinutes(shift.checkIn);
+        const checkOut = toMinutes(shift.checkOut);
+
+        if(start == null || end == null) return "";
+
+        if(checkIn > start + 1){
+            return "遅刻";
+        }
+
+        if(checkOut < end - 30){
+            return "早退";
+        }
+
+        return "";
+    }
+
+    function loadShiftList(date){
+
+        fetch(`/admin/shifts/day?date=${date}`)
+            .then(res=>res.json())
+            .then(data=>{
+
+                const list=document.getElementById("shiftList")
+                list.innerHTML=""
+
+                const today=new Date()
+                today.setHours(0,0,0,0)
+
+                const target=new Date(date)
+                target.setHours(0,0,0,0)
+
+                data.forEach(shift=>{
+
+                    const div=document.createElement("div")
+                    div.className="shift-item"
+
+                    const endText = shift.endTime ? shift.endTime.substring(0,5) : "--:--"
+
+                    const actualText = (shift.checkIn && shift.checkOut)
+                        ? ` / 実働 ${shift.checkIn.substring(0,5)} - ${shift.checkOut.substring(0,5)}`
+                        : "";
+
+                    const statusText = getStatusText(shift);
+
+                    let deleteButton = ""
+                    if(target > today){
+                        deleteButton = `
+                            <button class="delete-btn" onclick="deleteShift(${shift.shiftId})">
+                                削除
+                            </button>
+                        `
+                    }
+
+                    div.innerHTML=`
+                    <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+
+                        <div>
+                            <div>${shift.name}</div>
+                            <div style="font-size:12px;color:#666;margin-top:4px;">
+                                ${shift.startTime ? shift.startTime.substring(0,5) : "--:--"} - ${endText}
+                                ${actualText}
+                            </div>
+                        </div>
+
+                        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+                            ${statusText ? `<div style="font-weight:bold;color:#f59e0b;">${statusText}</div>` : ""}
+                            ${deleteButton}
+                        </div>
+
+                    </div>
+                    `
+
+                    list.appendChild(div)
+
+                })
+
+            })
+    }
+
+    function resetTimeOptions(){
+        const start=document.getElementById("startTime")
+        const end=document.getElementById("endTime")
+
+        start.innerHTML='<option value="">出勤時間</option>'
+        end.innerHTML='<option value="">退勤時間</option>'
+
+        for(let h=0; h<24; h++){
+            for(let m=0; m<60; m+=30){
+                const hh=String(h).padStart(2,"0")
+                const mm=String(m).padStart(2,"0")
+                const time=`${hh}:${mm}`
+
+                const startOption=document.createElement("option")
+                startOption.value=time
+                startOption.textContent=time
+
+                const endOption=document.createElement("option")
+                endOption.value=time
+                endOption.textContent=time
+
+                start.appendChild(startOption)
+                end.appendChild(endOption)
+            }
+        }
+    }
+
+    async function loadEmployees(){
+
+        const res = await fetch("/employees")
+        const data = await res.json()
+
+        const select = document.getElementById("employeeSelect")
+        select.innerHTML='<option value="">社員選択</option>'
+
+        data.forEach(emp=>{
+            const option=document.createElement("option")
+            option.value=emp.id
+            option.textContent=emp.name
+            select.appendChild(option)
+        })
+    }
+
+    function resetCreateForm(){
+        document.getElementById("employeeSelect").value=""
+        document.getElementById("startTime").value=""
+        document.getElementById("endTime").value=""
+    }
+
+    async function showCreateForm(){
+
+        await loadEmployees()
+        resetTimeOptions()
+        resetCreateForm()
+
+        document.getElementById("createShiftForm").style.display="flex"
+    }
+
+    function hideCreateForm(){
+        document.getElementById("createShiftForm").style.display="none"
+    }
+
+    async function submitShift(){
+
+        const employeeId=document.getElementById("employeeSelect").value
+        const startTime=document.getElementById("startTime").value
+        const endTime=document.getElementById("endTime").value
+
+        if(!employeeId || !startTime || !endTime){
+            showToast("全て入力してください。")
+            return
+        }
+
+        if(endTime <= startTime){
+            showToast("時間を確認してください。")
+            return
+        }
+
+        const params=new URLSearchParams({
+            employeeId,
+            workDate:selectedDate,
+            startTime,
+            endTime
+        })
+
+        const res=await fetch("/admin/shifts",{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/x-www-form-urlencoded"
+            },
+            body:params
+        })
+
+        const text=await res.text()
+        showToast(text)
+
+        if(text === "シフトが作成されました。"){
+            hideCreateForm()
+            loadShiftList(selectedDate)
+            loadCalendar()
+        }
+    }
+
+    function deleteShift(id){
+        deleteTargetShiftId = id
+        document.getElementById("deleteModal").style.display="flex"
+    }
+
+    function closeDeleteModal(){
+        document.getElementById("deleteModal").style.display="none"
+        deleteTargetShiftId = null
+    }
+
+    function executeDelete(){
+        fetch(`/admin/shifts/${deleteTargetShiftId}`,{
+            method:"DELETE"
+        })
+        .then(res=>res.text())
+        .then(()=>{
+            closeDeleteModal()
+            showToast("シフトが削除されました。")
+            loadShiftList(selectedDate)
+            loadCalendar()
+        })
+    }
+
+    loadCalendar()
+    resetTimeOptions()
+
+</script>
+
+</body>
+</html>

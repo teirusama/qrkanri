@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>VIVAWORK-新規ID登録</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+
+    <style>
+
+        body{
+            margin:0;
+            font-family:'DotGothic16', sans-serif;
+            background:#f5f5f5;
+            color:#333;
+        }
+
+        .header{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            max-width:500px;
+            margin:0 auto;
+            padding:0 0 0 20px;
+            font-size:18px;
+        }
+
+        .header button{
+            appearance:none;
+            background:none;
+            border:none;
+            box-shadow:none;
+            font-size:18px;
+            padding:0;
+            color:black;
+            cursor:pointer;
+            font-family:'DotGothic16', sans-serif;
+        }
+
+        .login-wrapper{
+            width:80%;
+            max-width:420px;
+            margin:10px auto;
+            background:white;
+            border:5px solid #333;
+            border-radius:20px;
+            box-shadow:7px 7px 0 #9e9e9e;
+            padding:25px 0;
+        }
+
+        form{
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+        }
+
+        input{
+            width:200px;
+            height:30px;
+            border:3px solid black;
+            border-radius:8px;
+            margin:10px 0;
+            font-size:14px;
+            padding:5px;
+            font-family:'DotGothic16', sans-serif;
+        }
+
+        .button{
+            width:120px;
+            margin:16px auto 8px;
+            padding:10px;
+            font-size:16px;
+            background:#337fc6;
+            border:3px solid #333;
+            color:white;
+            border-radius:8px;
+            cursor:pointer;
+            font-family:'DotGothic16', sans-serif;
+        }
+
+        .toast{
+            position:fixed;
+            bottom:40px;
+            left:50%;
+            transform:translateX(-50%);
+            background:#333;
+            color:white;
+            padding:14px 24px;
+            border-radius:8px;
+            opacity:0;
+            transition:opacity .3s;
+        }
+
+        .toast.show{
+            opacity:1;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="header">
+    <button onclick="goHome()">«</button>
+    <h3>新規ID登録</h3>
+</div>
+
+<div class="login-wrapper">
+
+    <form id="createForm" novalidate>
+
+        <input type="text" name="loginid" placeholder="ログインID" required>
+        <input type="password" name="password" placeholder="パスワード" required>
+        <input type="text" name="name" placeholder="名前" required>
+        <input type="text" name="duty" placeholder="職責">
+        <input type="tel" name="phone" placeholder="電話番号" inputmode="numeric" pattern="[0-9]*">
+        <input type="email" name="email" placeholder="メール" required>
+
+        <button type="submit" class="button">
+            確認
+        </button>
+
+    </form>
+
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+
+    function goHome(){
+        window.location.href="/home";
+    }
+
+    const form=document.getElementById("createForm")
+
+    form.addEventListener("submit",async function(e){
+
+        e.preventDefault()
+
+        if(!form.checkValidity()){
+            showToast("必須項目を入力してください。")
+            return
+        }
+
+        const formData=new FormData(form)
+
+        const data={
+            loginid:formData.get("loginid"),
+            password:formData.get("password"),
+            name:formData.get("name"),
+            duty:formData.get("duty"),
+            phone:formData.get("phone"),
+            email:formData.get("email")
+        }
+
+        const res=await fetch("/admin/employees",{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify(data)
+        })
+
+        const result=await res.json()
+
+        if(result.result==="duplicate"){
+            showToast("既に存在するIDです。")
+            return
+        }
+
+        showToast("IDが作成されました。")
+
+        setTimeout(()=>{
+            window.location="/admin/employee-list"
+        },1000)
+
+    })
+
+    function showToast(msg){
+        const toast=document.getElementById("toast")
+        toast.innerText=msg
+        toast.classList.add("show")
+
+        setTimeout(()=>{
+            toast.classList.remove("show")
+        },3000)
+    }
+
+</script>
+
+</body>
+</html>

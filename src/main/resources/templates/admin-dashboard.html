@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>VIVAWORK-ダッシュボード</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+
+    <style>
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 0 0 0 20px;
+        }
+
+        .header button {
+            appearance: none;
+            background: none;
+            border: none;
+            box-shadow: none;
+            font-size: 18px;
+            padding: 0;
+            color: black;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'DotGothic16', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        button {
+            font-family: 'DotGothic16', sans-serif;
+            border: 2px solid #333;
+            border-radius: 8px;
+            box-shadow: 2px 2px 0 #d9d9d9;
+            cursor: pointer;
+            background: white;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: auto;
+            padding: 5px 20px 20px 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 14px;
+            margin-bottom: 14px;
+            border: 3px solid #333;
+            border-radius: 10px;
+            box-shadow: 5px 5px 0 #9e9e9e;
+        }
+
+        .card-title {
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .sub-text {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .chart-wrap {
+            width: 100%;
+            overflow: hidden;
+        }
+
+        svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .legend {
+            margin-top: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .legend-color {
+            width: 14px;
+            height: 14px;
+            border: 2px solid #333;
+            flex: 0 0 auto;
+        }
+
+        .status-list {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 14px;
+            border: 3px solid #333;
+            border-radius: 10px;
+            background: #f5f5f5;
+            gap: 10px;
+        }
+
+        .status-left {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .status-name {
+            margin-bottom: 6px;
+        }
+
+        .status-time {
+            font-size: 12px;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .detail-btn {
+            padding: 6px 12px;
+            background: black;
+            color: white;
+            flex: 0 0 auto;
+            align-self: center;
+            border: none;
+            box-shadow: none;
+        }
+
+        .empty-box {
+            border: 2px dashed #bbb;
+            border-radius: 10px;
+            padding: 16px;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+            background: #fafafa;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,.3);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .modal-content {
+            position: relative;
+            background: white;
+            padding: 20px;
+            border: 3px solid #333;
+            border-radius: 10px;
+            width: 260px;
+            text-align: center;
+        }
+
+        .modal-close-x {
+            position: absolute;
+            top: 10px;
+            right: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .modal-name {
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        .modal-row {
+            display: flex;
+            margin-bottom: 8px;
+            font-size: 13px;
+            text-align: left;
+        }
+
+        .modal-label {
+            width: 80px;
+            color: #666;
+            flex: 0 0 auto;
+        }
+
+        .modal-value {
+            flex: 1;
+            word-break: break-word;
+        }
+
+        .modal-actions {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .error-box {
+            margin-top: 10px;
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 12px;
+            background: #fff1f1;
+            color: #a33;
+            display: none;
+            white-space: pre-wrap;
+        }
+
+        .call-btn {
+            background: #fc6b11;
+            color: white;
+            font-size: 12px;
+            padding: 6px 15px;
+            cursor: pointer;
+            border: none;
+            box-shadow: none;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="header">
+    <button onclick="goHome()">«</button>
+    <h3>ダッシュボード</h3>
+</div>
+
+<div class="container">
+
+    <div class="card">
+        <div class="card-title">
+            <script>
+                document.write(new Date().toLocaleDateString('ja-JP', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    weekday: 'short'
+                }));
+            </script><br>
+            今日のシフト
+        </div>
+
+        <div class="chart-wrap">
+            <svg id="scheduleChart" viewBox="0 0 760 760"></svg>
+        </div>
+
+        <div id="legend" class="legend"></div>
+        <div id="timelineError" class="error-box"></div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">勤務者一覧</div>
+        <div id="statusList" class="status-list"></div>
+    </div>
+
+</div>
+
+<div id="detailModal" class="modal">
+    <div class="modal-content">
+        <span class="modal-close-x" onclick="closeModal()">✕</span>
+
+        <div class="modal-name" id="modalName">-</div>
+
+        <div class="modal-row">
+            <div class="modal-label">職責</div>
+            <div class="modal-value" id="modalDuty">-</div>
+        </div>
+
+        <div class="modal-row">
+            <div class="modal-label">電話</div>
+            <div class="modal-value" id="modalPhone">-</div>
+        </div>
+
+        <div class="modal-row">
+            <div class="modal-label">入社日</div>
+            <div class="modal-value" id="modalDate">-</div>
+        </div>
+
+        <div class="modal-row">
+            <div class="modal-label">遅刻回数</div>
+            <div class="modal-value" id="modalLate">0</div>
+        </div>
+
+        <div class="modal-actions">
+            <button id="callBtn" class="call-btn" onclick="callPhone()">電話をかける</button>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    let workers = [];
+
+    async function loadDashboard() {
+        try {
+            const res = await fetch("/api/dashboard/today");
+
+            if (!res.ok) {
+                throw new Error("API通信失敗: " + res.status);
+            }
+
+            const data = await res.json();
+            console.log("dashboard data:", data);
+
+            workers = data.map((d, index) => ({
+                id: d.id,
+                name: d.name ?? "-",
+                duty: d.duty ?? "-",
+                phone: d.phone ?? "-",
+                date: normalizeDate(d.joinDate),
+                late: d.lateCount ?? 0,
+                start: normalizeTime(d.start),
+                end: normalizeTime(d.end),
+                color: getColor(index),
+                attendance: buildAttendance(d)
+            }));
+
+            workers.sort((a, b) => {
+                if (!a.start) return 1;
+                if (!b.start) return -1;
+                return a.start.localeCompare(b.start);
+            });
+
+            console.log("workers:", workers);
+
+            drawWorkerRings();
+            renderStatusList();
+
+        } catch (e) {
+            console.error("データの読み込みに失敗しました。:", e);
+            showTimelineError("データの読み込みに失敗しました。");
+            renderEmptyStatus("勤務情報がありません。");
+        }
+    }
+
+    function normalizeTime(value) {
+        if (value === null || value === undefined) return null;
+
+        if (typeof value === "string") {
+            const str = value.trim();
+
+            if (/^\d{2}:\d{2}:\d{2}/.test(str)) {
+                return str.substring(0, 5);
+            }
+
+            if (/^\d{2}:\d{2}$/.test(str)) {
+                return str;
+            }
+
+            if (str.includes("T")) {
+                return str.split("T")[1].substring(0, 5);
+            }
+
+            if (str.includes(" ")) {
+                return str.split(" ")[1].substring(0, 5);
+            }
+        }
+
+        if (typeof value === "object") {
+            if (value.hour !== undefined && value.minute !== undefined) {
+                const h = String(value.hour).padStart(2, "0");
+                const m = String(value.minute).padStart(2, "0");
+                return `${h}:${m}`;
+            }
+        }
+
+        return null;
+    }
+
+    function normalizeDate(value) {
+        if (!value) return "-";
+
+        const str = String(value);
+
+        if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+            return str;
+        }
+
+        if (str.includes("T")) {
+            return str.split("T")[0];
+        }
+
+        if (str.includes(" ")) {
+            return str.split(" ")[0];
+        }
+
+        return str;
+    }
+
+    function buildAttendance(d) {
+        const checkIn = normalizeTime(d.checkIn);
+        const checkOut = normalizeTime(d.checkOut);
+
+        if (!checkIn && !checkOut) {
+            return null;
+        }
+
+        return {
+            checkIn: checkIn,
+            checkOut: checkOut
+        };
+    }
+
+    function getColor(index) {
+        const colors = [
+            "#ff9f43",
+            "#4dabf7",
+            "#69db7c",
+            "#c792ea",
+            "#ff6b6b",
+            "#74c0fc",
+            "#ffd43b"
+        ];
+        return colors[index % colors.length];
+    }
+
+    function showTimelineError(message) {
+        const box = document.getElementById("timelineError");
+        box.style.display = "block";
+        box.innerText = message;
+    }
+
+    function clearTimelineError() {
+        const box = document.getElementById("timelineError");
+        box.style.display = "none";
+        box.innerText = "";
+    }
+
+    const svg = document.getElementById("scheduleChart");
+    const legend = document.getElementById("legend");
+
+    const cx = 380;
+    const cy = 380;
+    const outerRadius = 250;
+    const ringGap = 28;
+    const ringWidth = 18;
+
+    function timeToMinutes(t) {
+        if (!t) return null;
+        const match = String(t).match(/(\d{2}):(\d{2})/);
+        if (!match) return null;
+
+        return Number(match[1]) * 60 + Number(match[2]);
+    }
+
+    function minutesToAngle(m) {
+        const normalized = m % 720;
+        return (normalized / 720) * 360 - 90;
+    }
+
+    function polar(cx, cy, r, a) {
+        const rad = a * Math.PI / 180;
+        return {
+            x: cx + r * Math.cos(rad),
+            y: cy + r * Math.sin(rad)
+        };
+    }
+
+    function arc(cx, cy, r, a1, span) {
+        const s = polar(cx, cy, r, a1);
+        const e = polar(cx, cy, r, a1 + span);
+        const largeArcFlag = span > 180 ? 1 : 0;
+        return `M ${s.x} ${s.y} A ${r} ${r} 0 ${largeArcFlag} 1 ${e.x} ${e.y}`;
+    }
+
+    function addSvg(tag, attrs) {
+        const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+        for (const key in attrs) {
+            el.setAttribute(key, attrs[key]);
+        }
+        svg.appendChild(el);
+        return el;
+    }
+
+    function drawBase() {
+        svg.innerHTML = "";
+
+        addSvg("circle", {
+            cx: cx,
+            cy: cy - 4,
+            r: outerRadius + 60,
+            fill: "#fcfcfc",
+            stroke: "#333",
+            "stroke-width": 4
+        });
+
+        const hourLabels = [12,1,2,3,4,5,6,7,8,9,10,11];
+
+        for (let i = 0; i < 12; i++) {
+            const angle = (i / 12) * 360 - 90;
+
+            const outer = polar(cx, cy, outerRadius + 16, angle);
+            const inner = polar(cx, cy, outerRadius, angle);
+
+            addSvg("line", {
+                x1: outer.x,
+                y1: outer.y,
+                x2: inner.x,
+                y2: inner.y,
+                stroke: "#333",
+                "stroke-width": 3
+            });
+
+            const p = polar(cx, cy, outerRadius + 34, angle);
+
+            const t = addSvg("text", {
+                x: p.x,
+                y: p.y + 5,
+                "text-anchor": "middle",
+                "font-size": "23",
+                fill: "#333"
+            });
+
+            t.textContent = hourLabels[i];
+        }
+
+        for (let i = 0; i < 12; i++) {
+            const angle = (i / 12) * 360 - 90 + 15;
+
+            const outer = polar(cx, cy, outerRadius + 12, angle);
+            const inner = polar(cx, cy, outerRadius + 4, angle);
+
+            addSvg("line", {
+                x1: outer.x,
+                y1: outer.y,
+                x2: inner.x,
+                y2: inner.y,
+                stroke: "#777",
+                "stroke-width": 1.5
+            });
+        }
+
+        addSvg("circle", {
+            cx: cx,
+            cy: cy,
+            r: 5,
+            fill: "#333"
+        });
+    }
+
+    function drawWorkerRings() {
+        clearTimelineError();
+        drawBase();
+        legend.innerHTML = "";
+
+        if (!workers.length) {
+            legend.innerHTML = `<div class="empty-box">勤務情報がありません。</div>`;
+            return;
+        }
+
+        workers.forEach((w, i) => {
+            const r = outerRadius - (i * ringGap);
+
+            const start = timeToMinutes(w.start);
+            const end = timeToMinutes(w.end);
+
+            if (start === null || end === null) {
+                console.warn("Time parsing failed:", w);
+                return;
+            }
+
+            addSvg("circle", {
+                cx: cx,
+                cy: cy,
+                r: r,
+                fill: "none",
+                stroke: "#e5e5e5",
+                "stroke-width": ringWidth
+            });
+
+            let duration = end - start;
+            if (duration <= 0) {
+                duration += 1440;
+            }
+
+            const span = (duration / 720) * 360;
+            const a = minutesToAngle(start);
+
+            const pathD = arc(cx, cy, r, a, Math.min(span, 359.999));
+
+            addSvg("path", {
+                d: pathD,
+                stroke: w.color,
+                "stroke-width": ringWidth,
+                fill: "none",
+                "stroke-linecap": "round"
+            });
+
+            const dot = polar(cx, cy, r, a);
+
+            addSvg("circle", {
+                cx: dot.x,
+                cy: dot.y,
+                r: 4,
+                fill: "#fff",
+                stroke: "#333",
+                "stroke-width": 2
+            });
+
+            const item = document.createElement("div");
+            item.className = "legend-item";
+            item.innerHTML = `
+                <span class="legend-color" style="background:${w.color}"></span>
+                <span>${w.name} ${w.start}-${w.end}</span>
+            `;
+            legend.appendChild(item);
+        });
+    }
+
+    function getStatus(w) {
+        if (!w.attendance || !w.attendance.checkIn) {
+            return "出勤前";
+        }
+
+        if (w.attendance.checkIn && !w.attendance.checkOut) {
+            return `${w.attendance.checkIn}から勤務中`;
+        }
+
+        if (w.attendance.checkIn && w.attendance.checkOut) {
+            const late = w.start && w.attendance.checkIn > w.start;
+            const early = w.end && timeToMinutes(w.attendance.checkOut) <= timeToMinutes(w.end) - 30;
+
+            if (late) return "勤務完了(遅刻)";
+            if (early) return "勤務完了(早退)";
+
+            return "勤務完了";
+        }
+
+        return "出勤前";
+    }
+
+    function renderEmptyStatus(message) {
+        const list = document.getElementById("statusList");
+        list.innerHTML = `<div class="empty-box">${message}</div>`;
+    }
+
+    function renderStatusList() {
+        const list = document.getElementById("statusList");
+        list.innerHTML = "";
+
+        if (!workers.length) {
+            renderEmptyStatus("勤務情報がありません。");
+            return;
+        }
+
+        workers.forEach(w => {
+            const div = document.createElement("div");
+            div.className = "status-item";
+
+            const shiftText = (w.start && w.end) ? `${w.start}-${w.end}` : "-";
+
+            div.innerHTML = `
+                <div class="status-left">
+                    <div class="status-name">${w.name}</div>
+                    <div class="status-time">${shiftText} / ${getStatus(w)}</div>
+                </div>
+                <button class="detail-btn" onclick="openModal(${w.id})">詳細</button>
+            `;
+
+            list.appendChild(div);
+        });
+    }
+
+    function openModal(id) {
+        const w = workers.find(x => String(x.id) === String(id));
+        if (!w) return;
+
+        document.getElementById("modalName").innerText = w.name ?? "-";
+        document.getElementById("modalDuty").innerText = w.duty ?? "-";
+        document.getElementById("modalPhone").innerText = w.phone ?? "-";
+
+        const dateText = w.date ?? "-";
+
+        if (dateText !== "-") {
+            const joinDate = new Date(dateText);
+            const today = new Date();
+
+            const diffTime = today - joinDate;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+            document.getElementById("modalDate").innerText =
+                `${dateText} / 入社${diffDays}日目`;
+        } else {
+            document.getElementById("modalDate").innerText = "-";
+        }
+
+        document.getElementById("modalLate").innerText = w.late ?? 0;
+
+        document.getElementById("detailModal").style.display = "flex";
+    }
+
+    function closeModal() {
+        document.getElementById("detailModal").style.display = "none";
+    }
+
+    document.getElementById("detailModal").addEventListener("click", function (e) {
+        if (e.target.id === "detailModal") {
+            closeModal();
+        }
+    });
+
+    loadDashboard();
+
+    function callPhone() {
+        let phone = document.getElementById("modalPhone").innerText;
+
+        if (!phone || phone === "-") {
+            alert("電話番号がありません。");
+            return;
+        }
+
+        phone = phone.trim();
+        phone = phone.replace(/[^0-9+]/g, "");
+
+        if (phone.length < 8) {
+            alert("正しい電話番号ではありません。");
+            return;
+        }
+
+        window.location.href = "tel:" + phone;
+    }
+
+    function goHome() {
+        window.location = "/home";
+    }
+
+</script>
+
+</body>
+</html>

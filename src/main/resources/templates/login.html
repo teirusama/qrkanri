@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>VIVAWORK</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+
+    <style>
+        body{
+            margin:0;
+            min-height:100vh;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            font-family: 'DotGothic16', sans-serif;
+            background:#d8d8d8;
+            text-align:center;
+        }
+        .container{
+            width:100%;
+            max-width:420px;
+            height:100%;
+            max-height:800px;
+            background:white;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+        }
+        .logo{
+            font-size:34px;
+            font-weight:bold;
+        }
+        input{
+            width:240px;
+            height:40px;
+            border:4px solid black;
+            border-radius:8px;
+            margin:10px 0;
+            font-size:16px;
+            padding:5px;
+            font-family: 'DotGothic16', sans-serif;
+        }
+        .button{
+            display:block;
+            width:140px;
+            margin:15px auto;
+            margin-bottom:10px;
+            padding:11px;
+            font-size:18px;
+            background:#337fc6;
+            color:white;
+            border-radius:8px;
+            text-decoration:none;
+            cursor:pointer;
+            font-family: 'DotGothic16', sans-serif;
+            border:3px solid #333;
+            border-radius:8px;
+        }
+        .button:hover{
+            background:#4a95db;
+        }
+        .error{
+            color:red;
+        }
+        .toast{
+            position:fixed;
+            bottom:40px;
+            left:50%;
+            transform:translateX(-50%);
+            background:#333;
+            color:white;
+            padding:14px 24px;
+            border-radius:8px;
+            font-size:16px;
+            opacity:0;
+            transition:opacity 0.4s;
+            z-index:2000;
+        }
+
+        .toast.show{
+            opacity:1;
+        }
+        .logo img{
+            width:220px;
+            height:auto;
+        }
+        .character img{
+            margin-top:15px;
+            width:125px;
+        }
+        .login-wrapper{
+            width:80%;
+            max-width:420px;
+            background:white;
+            border:5px solid #333;
+            border-radius:20px;
+            box-shadow:7px 7px 0 #9e9e9e;
+            padding:30px 0;
+            margin:0;
+        }
+    </style>
+
+</head>
+
+<body>
+<div class="login-wrapper">
+    <div class="container">
+        <div class="character">
+            <img th:src="@{/images/login.png}" alt="비버 캐릭터">
+        </div>
+        <div class="logo">
+            <img th:src="@{/images/logo.png}" alt="VIVAWORK 로고">
+        </div>
+
+        <form id="loginForm" action="/login" method="post" novalidate>
+
+            <input type="text" name="loginid" placeholder="ID">
+
+            <input type="password" name="password" placeholder="PASSWORD">
+
+            <button type="submit" class="button">ログイン</button>
+
+            <p>Powered by the dream</p>
+
+        </form>
+            <div id="toast" class="toast"></div>
+            <span id="loginError" th:text="${error}" style="display:none"></span>
+    </div>
+    <script>
+
+        const params = new URLSearchParams(window.location.search);
+        const msg = params.get("msg");
+
+        const toast = document.getElementById("toast");
+
+
+        if(msg){
+
+            if(msg === "logout"){
+                toast.innerText = "ログアウトしました。";
+                showToast();
+            }
+
+        }
+
+
+        const error = document.getElementById("loginError").innerText;
+
+        if(error){
+            toast.innerText = error;
+            showToast();
+        }
+
+
+        function showToast(){
+
+            toast.classList.add("show");
+
+            setTimeout(()=>{
+                toast.classList.remove("show");
+            },3000);
+
+        }
+        const form = document.getElementById("loginForm");
+
+        form.addEventListener("submit", function(e){
+
+            const id = form.loginid.value.trim();
+            const pw = form.password.value.trim();
+
+            if(!id || !pw){
+                e.preventDefault();
+
+                toast.innerText = "IDとパスワードを入力してください。";
+                showToast();
+                return;
+            }
+
+        });
+
+    </script>
+
+    </body>
+</html>
