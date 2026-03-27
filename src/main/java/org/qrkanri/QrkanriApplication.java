@@ -11,5 +11,4 @@ public class QrkanriApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(QrkanriApplication.class, args);
 	}
-
 }
