@@ -39,6 +39,4 @@ out/
 .DS_Store
 
 # Env / Secret
-application.properties
-application.yml
 .env
