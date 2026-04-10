@@ -45,16 +45,28 @@
 * セキュリティ強化のため、BCrypt暗号化とmatches()による認証方式を実装しました。
 
 ## 実行方法(Docker)
-1. リポジトリをクローン
-2. コマンドを実行 - docker compose up --build
-3. ブラウザでlocalhost:8080にアクセス
+Java17およびDockerのインストールが必要です。
 
-* DBテープルはJPA、初期データはdata.sqlにより自動生成されます。
+1. リポジトリをクローンし、PCにプロジェクトを保存します。
+2. プロジェクトのルートディレクトリに「.env」ファイルを作成し、以下を記入してください。
+    <br>
+    <br>DB_USERNAME=(任意)
+    <br>DB_PASSWORD=(任意)
+    <br><br>
+3. ターミナル(コマンド)でプロジェクトのディレクトリに移動し、以下のコマンドを実行します。
+   <br>
+   <br>./gradlew build -x test
+   <br>docker compose up --build
+   <br><br>
+4. Webアプリケーションを起動します。
+   <br>
+   <br>- PCの場合：localhost:8080
+   <br>- スマートフォンの場合：（ローカルIPアドレス）:8080
+   <br>- 打刻用QRコード表示：localhost:8080/qr/display
+   <br>- テスト用アカウント：ID-admin / PW-1234
+   <br>
+* DBテーブルはJPA、初期データはdata.sqlにより自動生成されます。
 * QRコード読み取りの際、カメラアクセスのためngrokなどを利用したHTTPS環境が必要になる場合がございます。
-
-### テスト用アカウント
-* ID : admin
-* PW : 1234
 
 ## スクリーンショット
 
